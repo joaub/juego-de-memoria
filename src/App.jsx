@@ -6,15 +6,19 @@ function App() {
   const [image, setImage] = useState([]);
 
   useEffect(() => {
-    fetch(`https://pokeapi.co/api/v2/pokemon/3`)
-      .then((response) => {
-        if (!response.ok) throw new Error("Pokémon no encontrado");
-        return response.json();
-      })
-      .then((data) => {
-        setImage(data.sprites.other.dream_world.front_default);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+    async function loadPokemons() {
+      const ids = Array.from({ length: 6 }, () => Math.floor(Math.random() * 151) + 1);
+      const data = await Promise.all(
+        ids.map(id =>
+          fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+            .then(res => res.json())
+        )
+      );
+      setImage(data);
+      setFlipped(Array(data.length).fill(false));
+
+    }
+    loadPokemons();
   }, []);
 
 
@@ -27,17 +31,17 @@ function App() {
   return (
     <>
 
-      <div className='bg-gray-200 flex flex-col justify-center h-screen'>
-        <h1 className='text-2xl font-bold'>Juego de la Memoria</h1>
+      <div className="min-h-screen bg-gray-200 flex flex-col items-center p-4">
+        <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
         <div>
           <div>
-          <button className='rounded-xl p-4' onClick={handleClick}>
-            {flipped ? image && <img className='w-20 h-20' src={image} alt="Venusaur" /> : <p>vuelta</p>}
+            <button className='rounded-xl p-4' onClick={handleClick}>
+              {flipped ? image && <img className='w-20 h-20' src={image} alt="Venusaur" /> : <p>vuelta</p>}
             </button>
           </div>
-           <div>
-          <button className='rounded-xl p-4' onClick={handleClick}>
-            {flipped ? image && <img className='w-20 h-20' src={image} alt="Venusaur" /> : <p>vuelta</p>}
+          <div>
+            <button className='rounded-xl p-4' onClick={handleClick}>
+              {flipped ? image && <img className='w-20 h-20' src={image} alt="Venusaur" /> : <p>vuelta</p>}
             </button>
           </div>
         </div>
