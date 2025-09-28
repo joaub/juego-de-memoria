@@ -7,15 +7,26 @@ function App() {
 
   useEffect(() => {
     async function loadPokemons() {
-      const ids = Array.from({ length: 8}, () => Math.floor(Math.random() * 151) + 1);
+      const ids = Array.from({ length: 6 }, () => Math.floor(Math.random() * 494) + 1);
       const data = await Promise.all(
         ids.map(id =>
           fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
             .then(res => res.json())
         )
       );
-      setPokemons(data);
-      setFlipped(Array(data.length).fill(false));
+      // Creamos las cartas duplicadas
+       const duplicated = data.flatMap(poke => [
+        { uid: crypto.randomUUID(), name: poke.name,
+          img: poke.sprites.other["official-artwork"].front_default },
+        { uid: crypto.randomUUID(), name: poke.name,
+          img: poke.sprites.other["official-artwork"].front_default },
+      ]);
+
+      // Mezclamos
+      const shuffled = duplicated.sort(() => Math.random() - 0.5);
+
+      setPokemons(shuffled);
+      setFlipped(Array(shuffled.length).fill(false));// una posición por carta
 
     }
     loadPokemons();
@@ -35,13 +46,13 @@ function App() {
 
       <div className="min-h-screen bg-gray-200 flex flex-col items-center p-4">
         <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
-        <div>
+        <div className="grid grid-cols-4 gap-4">
             {pokemons.map((poke, i) => ( 
-              <button key={poke.id}
+              <button key={poke.uid}
               onClick={() => handleClick(i)} className='rounded-xl p-4' >
               {flipped[i] ? (
               <img
-                src={poke.sprites.other["official-artwork"].front_default}
+                src={poke.img}
                 alt={poke.name}
                 className="w-28 h-28 object-contain"/> ): (
                 <span className="text-4xl">❓</span>
