@@ -97,17 +97,18 @@ function App() {
         <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
         <p className="mb-6">Pares encontrados: {score}</p>
         <button >queda</button>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-6 gap-4">
           {pokemons.map((poke, i) => {
             const isFlipped = flipped.includes(i) || poke.matched;
             return (
               <button key={poke.uid}
-                onClick={() => handleClick(i)} className='rounded-xl p-4' >
+                onClick={() => handleClick(i)} 
+                className="w-25 h-32 bg-white border rounded-xl shadow-md flex  items-center justify-center" >
                 {isFlipped ? (
                   <img
                     src={poke.img}
                     alt={poke.name}
-                    className="w-28 h-28 object-contain" />) : (
+                    className="w-24 h-24 object-contain" />) : (
                   <span className="text-4xl">❓</span>
                 )}
               </button>
