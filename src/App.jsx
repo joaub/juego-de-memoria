@@ -6,7 +6,8 @@ function App() {
   const [pokemons, setPokemons] = useState([]);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
-
+  const [timeLeft, setTimeLeft] = useState(60); // Tiempo inicial en segundos
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     async function loadPokemons() {
@@ -38,21 +39,42 @@ function App() {
       setPokemons(shuffled);
       setFlipped([]);
       setScore(0);
+      setTimeLeft(60); // Reiniciar el tiempo
+      setGameOver(false);
 
     }
     loadPokemons();
+  }, [level]);
+
+  // ⏳ Temporizador
+  useEffect(() => {
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setGameOver(true);
+          alert('¡Se acabó el tiempo! Intenta de nuevo.');
+          return 0;
+        }
+        return prev - 1;
+
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, [level]);
 
 
   const handleClick = (index) => {
     // no permitir más de 2 a la vez, ni cartas ya resueltas
     if (
-      flipped.length < 2 &&
-      !flipped.includes(index) &&
-      !pokemons[index].matched
-    ) {
-      setFlipped(prev => [...prev, index]);
-    }
+      gameOver ||                      // si terminó el juego
+      flipped.includes(index) ||        // si ya está volteada
+      pokemons[index].matched ||        // si ya está encontrada
+      flipped.length === 2              // si ya hay dos volteadas
+    ) return;
+    setFlipped(prev => [...prev, index]);
   };
 
   // 🔹 Comparar las dos cartas dadas vuelta
@@ -81,13 +103,13 @@ function App() {
     }
 
     // ✅ cuando se completan todos los pares
-  if (score === pokemons.length / 2 && pokemons.length > 0) {
-    setTimeout(() => {
-      alert('¡Felicidades! Has encontrado todos los pares. Siguiente nivel.');
-      setLevel(prev => prev + 1); // 🔥 sube el nivel
-    }, 800);
-  }
-}, [flipped, pokemons, score]);
+    if (score === pokemons.length / 2 && pokemons.length > 0) {
+      setTimeout(() => {
+        alert('¡Felicidades! Has encontrado todos los pares. Siguiente nivel.');
+        setLevel(prev => prev + 1); // 🔥 sube el nivel
+      }, 800);
+    }
+  }, [flipped, pokemons, score]);
 
 
   return (
@@ -96,13 +118,15 @@ function App() {
       <div className="min-h-screen bg-gray-200 flex flex-col items-center p-4">
         <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
         <p className="mb-6">Pares encontrados: {score}</p>
-        <button >queda</button>
+        <p >quedan : <span className="font-bold">{timeLeft}</span> s</p>
+        {gameOver && <p className="text-red-600 text-lg mb-4">¡Tiempo agotado!</p>}
+
         <div className="grid grid-cols-6 gap-4">
           {pokemons.map((poke, i) => {
             const isFlipped = flipped.includes(i) || poke.matched;
             return (
               <button key={poke.uid}
-                onClick={() => handleClick(i)} 
+                onClick={() => handleClick(i)}
                 className="w-25 h-32 bg-white border rounded-xl shadow-md flex  items-center justify-center" >
                 {isFlipped ? (
                   <img
