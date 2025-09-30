@@ -12,7 +12,11 @@ function App() {
   useEffect(() => {
     async function loadPokemons() {
       const count = level + 2; // 2 pares por nivel
-      const ids = Array.from({ length: count }, () => Math.floor(Math.random() * 494) + 1);
+      let ids = [];
+      while (ids.length < count) {
+        const randomId = Math.floor(Math.random() * 494) + 1;
+        if (!ids.includes(randomId)) ids.push(randomId);
+      }
       const data = await Promise.all(
         ids.map(id =>
           fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
