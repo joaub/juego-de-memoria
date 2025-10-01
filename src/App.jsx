@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 
 function App() {
@@ -8,6 +8,8 @@ function App() {
   const [level, setLevel] = useState(1);
   const [timeLeft, setTimeLeft] = useState(60); // Tiempo inicial en segundos
   const [gameOver, setGameOver] = useState(false);
+
+  const levelReady = useRef(false);
 
   useEffect(() => {
     async function loadPokemons() {
@@ -45,6 +47,7 @@ function App() {
       setScore(0);
       setTimeLeft(60); // Reiniciar el tiempo
       setGameOver(false);
+      levelReady.current = true;
 
     }
     loadPokemons();
@@ -52,6 +55,7 @@ function App() {
 
   // ⏳ Temporizador
   useEffect(() => {
+    if (gameOver) return; // no iniciar si el juego terminó
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -64,10 +68,10 @@ function App() {
         return prev - 1;
 
       });
-    }, 1000);
+    }, 700);
 
     return () => clearInterval(timer);
-  }, [level]);
+  }, [level, gameOver]);
 
 
   const handleClick = (index) => {
@@ -107,13 +111,22 @@ function App() {
     }
 
     // ✅ cuando se completan todos los pares
-    if (score === pokemons.length / 2 && pokemons.length > 0) {
+    if (pokemons.length > 0 && score > 0 && 
+      score === pokemons.length / 2 && levelReady.current) {
       setTimeout(() => {
-        alert('¡Felicidades! Has encontrado todos los pares. Siguiente nivel.');
-        setLevel(prev => prev + 1); // 🔥 sube el nivel
+        if(level < 6){ // solo 5 niveles
+          alert(`¡Felicidades! Has encontrado todos los pares. Siguiente nivel ${level}.`);
+          levelReady.current = false;
+          setLevel(prev => prev + 1); // 🔥 sube el nivel
+        }else{
+          alert('¡Felicidades! Has completado el nivel máximo.');
+          setGameOver(true);
+          
+        }
+        
       }, 800);
     }
-  }, [flipped, pokemons, score]);
+  }, [flipped, pokemons, score,level]);
 
 
   return (
@@ -125,18 +138,18 @@ function App() {
         <p >quedan : <span className="font-bold">{timeLeft}</span> s</p>
         {gameOver && <p className="text-red-600 text-lg mb-4">¡Tiempo agotado!</p>}
 
-        <div className="grid grid-cols-6 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           {pokemons.map((poke, i) => {
             const isFlipped = flipped.includes(i) || poke.matched;
             return (
               <button key={poke.uid}
                 onClick={() => handleClick(i)}
-                className="w-25 h-32 bg-white border rounded-xl shadow-md flex  items-center justify-center" >
+                className="w-22 h-28 bg-white border rounded-xl shadow-md flex  items-center justify-center" >
                 {isFlipped ? (
                   <img
                     src={poke.img}
                     alt={poke.name}
-                    className="w-24 h-24 object-contain" />) : (
+                    className="w-22 h-22 object-contain" />) : (
                   <span className="text-4xl">❓</span>
                 )}
               </button>
