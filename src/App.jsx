@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 
 function App() {
@@ -8,8 +8,8 @@ function App() {
   const [level, setLevel] = useState(1);
   const [timeLeft, setTimeLeft] = useState(60); // Tiempo inicial en segundos
   const [gameOver, setGameOver] = useState(false);
-
-  const levelReady = useRef(false);
+  const [levelReady, setLevelReady] = useState(false);
+ 
 
   useEffect(() => {
     async function loadPokemons() {
@@ -47,7 +47,7 @@ function App() {
       setScore(0);
       setTimeLeft(60); // Reiniciar el tiempo
       setGameOver(false);
-      levelReady.current = true;
+      setLevelReady(true);
 
     }
     loadPokemons();
@@ -55,7 +55,7 @@ function App() {
 
   // ⏳ Temporizador
   useEffect(() => {
-    if (gameOver) return; // no iniciar si el juego terminó
+    if (gameOver || !levelReady) return; // no iniciar si el juego terminó
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -68,10 +68,10 @@ function App() {
         return prev - 1;
 
       });
-    }, 700);
+    }, 1000);
 
     return () => clearInterval(timer);
-  }, [level, gameOver]);
+  }, [level, gameOver, levelReady]);
 
 
   const handleClick = (index) => {
@@ -110,13 +110,13 @@ function App() {
       }
     }
 
+    const allMatched = pokemons.length > 0 && pokemons.every(p => p.matched);
     // ✅ cuando se completan todos los pares
-    if (pokemons.length > 0 && score > 0 && 
-      score === pokemons.length / 2 && levelReady.current) {
+    if (allMatched && levelReady){
       setTimeout(() => {
         if(level < 6){ // solo 5 niveles
           alert(`¡Felicidades! Has encontrado todos los pares. Siguiente nivel ${level}.`);
-          levelReady.current = false;
+          setLevelReady(false);
           setLevel(prev => prev + 1); // 🔥 sube el nivel
         }else{
           alert('¡Felicidades! Has completado el nivel máximo.');
@@ -126,19 +126,19 @@ function App() {
         
       }, 800);
     }
-  }, [flipped, pokemons, score,level]);
+  }, [flipped, pokemons, levelReady,level]);
 
 
   return (
     <>
 
-      <div className="min-h-screen bg-gray-200 flex flex-col items-center p-4">
+      <div className="min-h-screen bg-blue-400 flex flex-col items-center p-4">       
         <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
         <p className="mb-6">Pares encontrados: {score}</p>
         <p >quedan : <span className="font-bold">{timeLeft}</span> s</p>
         {gameOver && <p className="text-red-600 text-lg mb-4">¡Tiempo agotado!</p>}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
           {pokemons.map((poke, i) => {
             const isFlipped = flipped.includes(i) || poke.matched;
             return (
