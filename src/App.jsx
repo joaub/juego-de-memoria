@@ -144,7 +144,7 @@ function App() {
             return (
               <button key={poke.uid}
                 onClick={() => handleClick(i)}
-                className="w-18 h-22 sm:w-24 sm:h-28 md:w-28 md:h-32 bg-white border rounded-xl shadow-md flex  items-center justify-center" >
+                className="w-18 h-22 sm:w-24 sm:h-28 md:w-28 md:h-32 bg-white border rounded-xl shadow-md flex  items-center justify-center transition duration-300 ease-in  hover:scale-110" >
                 {isFlipped ? (
                   <img
                     src={poke.img}
@@ -157,6 +157,9 @@ function App() {
           })}
 
         </div>
+        <p className="mt-6">Nivel: {level} / 6</p>
+        {gameOver && <button className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={() => {setLevel(1),setLevelReady()}}>Reiniciar Juego</button>}
       </div>
 
     </>
