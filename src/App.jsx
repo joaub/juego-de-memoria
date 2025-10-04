@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+const click = new Audio('/click.mp3');
+const match = new Audio('/match.mp3');
 
 function App() {
   const [flipped, setFlipped] = useState([]);
@@ -82,6 +84,7 @@ function App() {
       pokemons[index].matched ||        // si ya está encontrada
       flipped.length === 2              // si ya hay dos volteadas
     ) return;
+    click.play();
     setFlipped(prev => [...prev, index]);
   };
 
@@ -103,6 +106,7 @@ function App() {
               : c
           )
         );
+        match.play();
         setFlipped([]);
       } else {
         //  No son iguales → esperar 1 seg y cerrarlas
