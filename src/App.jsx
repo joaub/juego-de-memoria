@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 
 const click = new Audio('/click.mp3');
 const match = new Audio('/match.mp3');
+const lose = new Audio('/perder.mp3');
 
 function App() {
   const [flipped, setFlipped] = useState([]);
@@ -64,7 +65,9 @@ function App() {
         if (prev <= 1) {
           clearInterval(timer);
           setGameOver(true);
+          lose.play();
           alert('¡Se acabó el tiempo! Intenta de nuevo.');
+          
           return 0;
         }
         return prev - 1;
