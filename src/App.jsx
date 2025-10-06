@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 const click = new Audio('/click.mp3');
 const match = new Audio('/match.mp3');
 const lose = new Audio('/perder.mp3');
+const win = new Audio('/winning.mp3');
 
 function App() {
   const [flipped, setFlipped] = useState([]);
@@ -67,7 +68,6 @@ function App() {
           setGameOver(true);
           lose.play();
           alert('¡Se acabó el tiempo! Intenta de nuevo.');
-          
           return 0;
         }
         return prev - 1;
@@ -121,14 +121,14 @@ function App() {
     // ✅ cuando se completan todos los pares
     if (allMatched && levelReady){
       setTimeout(() => {
-        if(level < 6){ // solo 5 niveles
+        if(level < 6){ // solo 6 niveles
           alert(`¡Felicidades! Has encontrado todos los pares. Siguiente nivel ${level}.`);
           setLevelReady(false);
           setLevel(prev => prev + 1); // 🔥 sube el nivel
         }else{
           alert('¡Felicidades! Has completado el nivel máximo.');
           setGameOver(true);
-          
+          win.play();
         }
         
       }, 800);
