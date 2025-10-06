@@ -5,6 +5,27 @@ const match = new Audio('/match.mp3');
 const lose = new Audio('/perder.mp3');
 const win = new Audio('/winning.mp3');
 
+const TYPES = {
+  normal: 'bg-gray-400',
+  fire: 'bg-red-500',
+  water: 'bg-blue-500',
+  electric: 'bg-yellow-400',
+  grass: 'bg-green-500',
+  ice: 'bg-blue-200',
+  fighting: 'bg-red-700',
+  poison: 'bg-purple-500',
+  ground: 'bg-yellow-700',
+  flying: 'bg-indigo-300',
+  psychic: 'bg-pink-500',
+  bug: 'bg-green-700',
+  rock: 'bg-yellow-800',
+  ghost: 'bg-indigo-700',
+  dragon: 'bg-purple-800',
+  dark: 'bg-gray-800',
+  steel: 'bg-gray-500',
+  fairy: 'bg-pink-300',
+};
+
 function App() {
   const [flipped, setFlipped] = useState([]);
   const [pokemons, setPokemons] = useState([]);
@@ -13,7 +34,24 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(60); // Tiempo inicial en segundos
   const [gameOver, setGameOver] = useState(false);
   const [levelReady, setLevelReady] = useState(false);
+  const [difficulty, setDifficulty] = useState('normal');
  
+
+  async function getPokemonType(type,count){
+    const response = await fetch(`https://pokeapi.co/api/v2/type/${type}`);
+    const data = await response.json();
+    const selected = data.pokemon.sort(() => Math.random() - 0.5).slice(0, count);
+    
+    const poke = await Promise.all(
+      selected.map(async (p) => {
+        const res = await fetch(p.pokemon.url);
+        const pokeData = await res.json();
+        return pokeData;
+      })
+    );
+    return poke;
+
+  }
 
   useEffect(() => {
     async function loadPokemons() {
