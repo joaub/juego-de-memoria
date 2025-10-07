@@ -5,26 +5,9 @@ const match = new Audio('/match.mp3');
 const lose = new Audio('/perder.mp3');
 const win = new Audio('/winning.mp3');
 
-const TYPES = {
-  normal: 'bg-gray-400',
-  fire: 'bg-red-500',
-  water: 'bg-blue-500',
-  electric: 'bg-yellow-400',
-  grass: 'bg-green-500',
-  ice: 'bg-blue-200',
-  fighting: 'bg-red-700',
-  poison: 'bg-purple-500',
-  ground: 'bg-yellow-700',
-  flying: 'bg-indigo-300',
-  psychic: 'bg-pink-500',
-  bug: 'bg-green-700',
-  rock: 'bg-yellow-800',
-  ghost: 'bg-indigo-700',
-  dragon: 'bg-purple-800',
-  dark: 'bg-gray-800',
-  steel: 'bg-gray-500',
-  fairy: 'bg-pink-300',
-};
+const TYPES = ["fire", "water", "grass", "electric", "psychic", "rock",
+  "bug", "ghost", "ice", "dragon", "dark", "fighting", "flying",
+  "ground", "poison", "steel", "normal"];
 
 function App() {
   const [flipped, setFlipped] = useState([]);
@@ -34,39 +17,54 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(60); // Tiempo inicial en segundos
   const [gameOver, setGameOver] = useState(false);
   const [levelReady, setLevelReady] = useState(false);
-  const [difficulty, setDifficulty] = useState('normal');
- 
+  const [difficulty, setDifficulty] = useState('easy');
 
-  async function getPokemonType(type,count){
-    const response = await fetch(`https://pokeapi.co/api/v2/type/${type}`);
-    const data = await response.json();
-    const selected = data.pokemon.sort(() => Math.random() - 0.5).slice(0, count);
-    
-    const poke = await Promise.all(
-      selected.map(async (p) => {
-        const res = await fetch(p.pokemon.url);
-        const pokeData = await res.json();
-        return pokeData;
-      })
+
+  async function getPokemonType(type, count) {
+    const res = await fetch(`https://pokeapi.co/api/v2/type/${type}`);
+    const data = await res.json();
+
+    const selected = data.pokemon
+      .map(p => p.pokemon.url)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, count * 3); // margen extra por si algunos > 494
+
+    const details = await Promise.all(
+      selected.map(url => fetch(url).then(res => res.json()))
     );
-    return poke;
 
+    return details.filter(p => p.id <= 721).slice(0, count);
   }
 
   useEffect(() => {
     async function loadPokemons() {
       const count = level + 2; // 2 pares por nivel
-      let ids = [];
-      while (ids.length < count) {
-        const randomId = Math.floor(Math.random() * 494) + 1;
-        if (!ids.includes(randomId)) ids.push(randomId);
+      let data = [];
+
+
+      let choseDifficulty = difficulty;
+      if (difficulty === "hard") {
+        const randomIndex = Math.floor(Math.random() * TYPES.length);
+        choseDifficulty = TYPES[randomIndex];
+        console.log("Tipo elegido aleatoriamente:", choseDifficulty);
       }
-      const data = await Promise.all(
-        ids.map(id =>
-          fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-            .then(res => res.json())
-        )
-      );
+      if (difficulty === "easy") {
+        let ids = [];
+        while (ids.length < count) {
+          const randomId = Math.floor(Math.random() * 721) + 1;
+          if (!ids.includes(randomId)) ids.push(randomId);
+        }
+        data = await Promise.all(
+          ids.map(id =>
+            fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+              .then(res => res.json())
+          )
+        );
+      } else {
+        data = await getPokemonType(choseDifficulty, count);
+      }
+
+
       // Creamos las cartas duplicadas
       const duplicated = data.flatMap(poke => [
         {
@@ -93,7 +91,7 @@ function App() {
 
     }
     loadPokemons();
-  }, [level]);
+  }, [level, difficulty]);
 
   // ⏳ Temporizador
   useEffect(() => {
@@ -157,28 +155,33 @@ function App() {
 
     const allMatched = pokemons.length > 0 && pokemons.every(p => p.matched);
     // ✅ cuando se completan todos los pares
-    if (allMatched && levelReady){
+    if (allMatched && levelReady) {
       setTimeout(() => {
-        if(level < 6){ // solo 6 niveles
+        if (level < 6) { // solo 6 niveles
           alert(`¡Felicidades! Has encontrado todos los pares. Siguiente nivel ${level}.`);
           setLevelReady(false);
           setLevel(prev => prev + 1); // 🔥 sube el nivel
-        }else{
+        } else {
           alert('¡Felicidades! Has completado el nivel máximo.');
           setGameOver(true);
           win.play();
         }
-        
+
       }, 800);
     }
-  }, [flipped, pokemons, levelReady,level]);
+  }, [flipped, pokemons, levelReady, level]);
 
 
   return (
     <>
 
-      <div className="min-h-screen bg-blue-400 flex flex-col items-center p-4">       
+      <div className="min-h-screen bg-blue-400 flex flex-col items-center p-4">
         <h1 className='text-2xl font-bold mb-6'>Juego de la Memoria</h1>
+        {/* Selector de dificultad */}
+        <div className="flex flex-wrap gap-2 mb-4 justify-center">
+          <button onClick={() => setDifficulty("easy")} className={`px-3 py-1 rounded ${difficulty === "easy" ? "bg-green-400" : "bg-gray-300"}`}>Fácil 🟢</button>
+          <button onClick={() => setDifficulty("hard")} className={`px-3 py-1 rounded ${difficulty === "hard" ? "bg-red-400" : "bg-gray-300"}`}>dificil 🔴</button>
+        </div>
         <p className="mb-6">Pares encontrados: {score}</p>
         <p >quedan : <span className="font-bold">{timeLeft}</span> s</p>
         {gameOver && <p className="text-red-600 text-lg mb-4">¡Tiempo agotado!</p>}
@@ -204,7 +207,7 @@ function App() {
         </div>
         <p className="mt-6">Nivel: {level} / 6</p>
         {gameOver && <button className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          onClick={() => {setLevel(1),setLevelReady()}}>Reiniciar Juego</button>}
+          onClick={() => { setLevel(1), setLevelReady(), setGameOver(false) }}>Reiniciar Juego</button>}
       </div>
 
     </>
