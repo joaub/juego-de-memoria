@@ -18,6 +18,8 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [levelReady, setLevelReady] = useState(false);
   const [difficulty, setDifficulty] = useState('easy');
+  const [showMessage, setShowMessage] = useState(false);
+  const [winMessage, setWinMessage] = useState(false);
 
 
   async function getPokemonType(type, count) {
@@ -103,7 +105,8 @@ function App() {
           clearInterval(timer);
           setGameOver(true);
           lose.play();
-          alert('¡Se acabó el tiempo! Intenta de nuevo.');
+          setWinMessage(false);
+          setShowMessage(true);
           return 0;
         }
         return prev - 1;
@@ -157,15 +160,9 @@ function App() {
     // ✅ cuando se completan todos los pares
     if (allMatched && levelReady) {
       setTimeout(() => {
-        if (level < 6) { // solo 6 niveles
-          alert(`¡Felicidades! Has encontrado todos los pares. Siguiente nivel ${level}.`);
-          setLevelReady(false);
-          setLevel(prev => prev + 1); // 🔥 sube el nivel
-        } else {
-          alert('¡Felicidades! Has completado el nivel máximo.');
-          setGameOver(true);
-          win.play();
-        }
+        setWinMessage(true);
+        setShowMessage(true);
+        win.play();
 
       }, 800);
     }
@@ -207,7 +204,56 @@ function App() {
         </div>
         <p className="mt-6">Nivel: {level} / 6</p>
         {gameOver && <button className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          onClick={() => { setLevel(1), setLevelReady(), setGameOver(false) }}>Reiniciar Juego</button>}
+          onClick={() => { setLevel(1), setLevelReady(false), setGameOver(false) }}>Reiniciar Juego</button>}
+        {showMessage && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div
+              className={`rounded-3xl shadow-2xl p-8 text-center animate-fade-in border-4 ${winMessage ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500'
+                }`}
+            >
+              <div className="text-6xl mb-4">{winMessage ? '🎉' : '💀'}</div>
+
+              <h2
+                className={`text-3xl font-extrabold mb-3 ${winMessage ? 'text-green-700' : 'text-red-700'
+                  }`}
+              >
+                {winMessage ? '¡Has ganado!' : '¡Has perdido!'}
+              </h2>
+
+              <p className="text-gray-700 mb-6 text-lg">
+                {winMessage
+                  ? `¡Excelente memoria, Entrenador Pokémon! Nivel ${level} completado.`
+                  : 'Se acabó el tiempo, intenta otra vez.'}
+              </p>
+
+              <button
+                onClick={() => {
+                  setShowMessage(false);
+
+                  if (winMessage) {
+                    // 🟢 Ganó → pasa de nivel
+                    if (level < 6) {
+                      setLevel(prev => prev + 1);
+                      setLevelReady(false);
+                      setGameOver(false);
+                    } else {
+                      // 🎯 Nivel máximo → mostrar opción de reinicio
+                      setGameOver(true);
+                    }
+                  } else {
+                    // 🔴 Perdió → mantener estado de "gameOver" para mostrar el botón de reiniciar
+                    setGameOver(true);
+                  }
+                }}
+              >
+                Continuar
+              </button>
+            </div>
+
+
+          </div>
+        )}
+
       </div>
 
     </>
