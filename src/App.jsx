@@ -180,7 +180,7 @@ function App() {
           <button onClick={() => setDifficulty("hard")} className={`px-3 py-1 rounded ${difficulty === "hard" ? "bg-red-400" : "bg-gray-300"}`}>dificil 🔴</button>
         </div>
         <p className="mb-6">Pares encontrados: {score}</p>
-        <p >quedan : <span className="font-bold">{timeLeft}</span> s</p>
+        <p className={`font-bold ${timeLeft <= 10 ? "text-red-500 scale-110 animate-pulse" : "text-black"}`}>quedan : <span >{timeLeft}</span> s</p>
         {gameOver && <p className="text-red-600 text-lg mb-4">¡Tiempo agotado!</p>}
 
         <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -226,7 +226,7 @@ function App() {
                   : 'Se acabó el tiempo, intenta otra vez.'}
               </p>
 
-              <button
+              <button className='border border-black rounded-full px-6 py-2 font-bold hover:bg-black hover:text-white transition'
                 onClick={() => {
                   setShowMessage(false);
 
