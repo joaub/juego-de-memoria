@@ -40,7 +40,9 @@ function App() {
 
   useEffect(() => {
     async function loadPokemons() {
-      const count = level + 2; // 2 pares por nivel
+      // 🧩 Más pares en difícil
+      const baseCount = level + 2;
+      const count = difficulty === "hard" ? baseCount + 2 : baseCount;
       let data = [];
 
 
