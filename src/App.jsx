@@ -89,7 +89,7 @@ function App() {
       setPokemons(shuffled);
       setFlipped([]);
       setScore(0);
-      setTimeLeft(60); // Reiniciar el tiempo
+      setTimeLeft(difficulty === "hard" ? 45 : 60); // Reiniciar el tiempo
       setGameOver(false);
       setLevelReady(true);
 
